@@ -15,8 +15,10 @@
 
 #ifdef ESP8266
 #include "Hash.h"
+#include "FS.h"
 #include <ESPAsyncTCP.h>
 #else
+#include "SPIFFS.h"
 #include <AsyncTCP.h>
 #endif
 #include <ESPAsyncWebServer.h>
@@ -30,8 +32,9 @@
 
 #define HOSTNAME "HTTP_BRIDGE"
 
+#include "SmartObjectMain.hpp"
+
 // Prototype
-void receivedCallback( const uint32_t &from, const String &msg );
 void newConnectionCallback(uint32_t nodeId);
 void changedConnectionCallback();
 void nodeTimeAdjustedCallback(int32_t offset);
@@ -42,31 +45,56 @@ AsyncWebServer server(80);
 IPAddress myIP(0,0,0,0);
 IPAddress myAPIP(0,0,0,0);
 
+SmartObjectMain SO(&mesh);
+
 void setup() {
   Serial.begin(115200);
 
-  mesh.setDebugMsgTypes( ERROR | STARTUP | CONNECTION | DEBUG);  // set before init() so that you can see startup messages
+    // Initialize SPIFFS
+  if (!SPIFFS.begin())
+  {
+    Serial.println("Failed to mount SPIFFS");
+  }
+  else
+  {
+    SO.loadSettings();
+  }
 
-  // Channel set to 6. Make sure to use the same channel for your mesh and for you other
-  // network (STATION_SSID)
+  mesh.setDebugMsgTypes( ERROR | STARTUP | CONNECTION | DEBUG);
   mesh.init( MESH_PREFIX, MESH_PASSWORD, MESH_PORT, WIFI_AP_STA, 6 );
-  mesh.onReceive(&receivedCallback);
-
   mesh.stationManual(STATION_SSID, STATION_PASSWORD);
   mesh.setHostname(HOSTNAME);
-
-  // Bridge node, should (in most cases) be a root node. See [the wiki](https://gitlab.com/painlessMesh/painlessMesh/wikis/Possible-challenges-in-mesh-formation) for some background
   mesh.setRoot(true);
-  // This node and all other nodes should ideally know the mesh contains a root, so call this on all nodes
   mesh.setContainsRoot(true);
+
+  SO.initMesh();
 
   myAPIP = IPAddress(mesh.getAPIP());
   Serial.println("My AP IP is " + myAPIP.toString());
 
+
+
+//---------------------------------------------------------------------------
   //Async webserver
+  server.on("/admin", HTTP_GET, [](AsyncWebServerRequest *request){
+    String text = String("");
+
+    text += mesh.asNodeTree().toString();
+      
+    request->send(200, "text/html", text.c_str());
+  });
+
+  server.on("/buf", HTTP_GET, [](AsyncWebServerRequest *request){
+    String text = String("");
+
+    text += mesh.asNodeTree().toString();
+    
+    request->send(200, "text/html", text.c_str());
+  });
+
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    String text = String("<form>Text to Broadcast<br><input type='text' value='sometext' name='BROADCAST'><br><br><input type='submit' value='Submit'></form> "\
-                         "<form>Text to Broadcast<br><input type='headen' name='tree'><br><br><input type='submit' value='Submit'></form><br><br><br>");
+    String text = String(" "\
+                         "");
 
     text += mesh.asNodeTree().toString();
 
@@ -74,9 +102,15 @@ void setup() {
       String msg = request->arg("BROADCAST");
       mesh.sendBroadcast(msg, true);
       
-    }
+    };
+
+    request->send(SPIFFS, "/index.html", String());
+  });
+
+  server.on("/api", HTTP_POST, [](AsyncWebServerRequest *request){
+
     
-    request->send(200, "text/html", text.c_str());
+    request->send(200, "text/html", "");
   });
 
   server.begin();
@@ -89,10 +123,6 @@ void loop() {
     myIP = getlocalIP();
     Serial.println("My IP is " + myIP.toString());
   }
-}
-
-void receivedCallback( const uint32_t &from, const String &msg ) {
-  Serial.printf("bridge: Received from %u msg=%s\n", from, msg.c_str());
 }
 
 void newConnectionCallback(uint32_t nodeId) {

@@ -1,0 +1,21 @@
+{
+    "nodeId": 3261830027,
+    "parent": 3261830027,
+    "rootId": 3261830027,
+    "subs": [
+        {
+            "nodeId": 2722958935,
+            "subs": []
+        }
+    ],
+
+    "scenario": [
+        {
+            "activatedPublisherName":"button1",
+            "activatedEvent":"",
+            "event": "light1",
+            "executorValueState":"",
+            "target": 2722958935
+        }
+    ]
+}
