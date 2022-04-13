@@ -128,8 +128,20 @@ void setup() {
     request->send(SPIFFS, "/index.html", String());
   });
 
-  server.on("/api", HTTP_POST, [](AsyncWebServerRequest *request){
+  server.on("/api", HTTP_GET, [](AsyncWebServerRequest *request){
+    if (request->hasArg("systemMode")){
+      SO.systemMode(request->arg("systemMode"));
+       Serial.println("systemMod " + request->arg("systemMode"));
+    };
+    
+    request->send(SPIFFS, "/index.html", String());
+  });
 
+  server.on("/api", HTTP_POST, [](AsyncWebServerRequest *request){
+    if (request->hasArg("systemMode")){
+      SO.systemMode(request->arg("systemMode"));
+       Serial.println("systemMod " + request->arg("systemMode"));
+    };
     
     request->send(200, "text/html", "");
   });

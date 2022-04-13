@@ -52,8 +52,14 @@ protected:
         if(data["command"].as<String>() == "sendEventToRoot"){
             String activator = data["activator"].as<String>();
             if(this->mesh->isRoot()){
+                Serial.printf("Im root\n");
                 for(uint32_t i = 0; i < this->scenes.size(); ++i){
                     if(this->scenes[i].activator == activator){
+                        Serial.printf("find scene: activator=%s; event=%s; executor=%s; target=%u;\n",
+                                     this->scenes[i].activator.c_str(),
+                                     this->scenes[i].event.c_str(),
+                                     this->scenes[i].executor.c_str(),
+                                     this->scenes[i].target);
                         this->sendEventToExecutor(this->scenes[i].target, this->scenes[i].executor, this->scenes[i].event);
                     }
                 }
@@ -67,6 +73,11 @@ protected:
         if (this->systemMode == "local"){
             for(uint32_t i = 0; i < this->scenes.size(); ++i){
                 if(this->scenes[i].activator == sp->getName()){
+                    Serial.printf("find scene: activator=%s; event=%s; executor=%s; target=%u;\n",
+                        this->scenes[i].activator.c_str(),
+                        this->scenes[i].event.c_str(),
+                        this->scenes[i].executor.c_str(),
+                        this->scenes[i].target);
                     this->sendEventToExecutor(this->scenes[i].target, this->scenes[i].executor, this->scenes[i].event);
                 }
             }
@@ -133,12 +144,17 @@ public:
 
         String out;
         serializeJson(data, out);
+        if(target == mesh->getNodeId()){
+            receivedCallback(target, out);
+            return;
+        }
 
         for(uint32_t i = 0; i < settings["mesh"]["childs"].size(); ++i){
             for(uint32_t j = 0; j < settings["mesh"]["childs"][i]["subs"].size(); ++j){
                 uint32_t node = settings["mesh"]["childs"][i]["subs"].as<uint32_t>();
                 if(node == target){
                     mesh->sendSingle(node, out);
+                    return;
                 }
             }
         }
