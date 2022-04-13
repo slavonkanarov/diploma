@@ -47,8 +47,29 @@ IPAddress myAPIP(0,0,0,0);
 
 SmartObjectMain SO(&mesh);
 
+auto value = SO.makeSmartValue("light1", 
+[&](const String& event, String& value){
+  if(event == ""){
+    if(value == "on"){
+      value = "off";
+    }else{
+      value = "on";
+    }
+  }
+
+},
+[&](const String& value){
+  if (value == "on"){
+    digitalWrite(D0, LOW);
+  }else{
+    digitalWrite(D0, HIGH);
+  }
+}
+);
+
 void setup() {
   Serial.begin(115200);
+  pinMode(D0, OUTPUT);
 
     // Initialize SPIFFS
   if (!SPIFFS.begin())

@@ -1,0 +1,15 @@
+{
+    "mesh":{
+        "parent": 3261830027,
+        "childs": []
+    },
+
+    "scenes": [
+        {
+            "activator":"button1.click",
+            "event": "",
+            "executor":"light1",
+            "target": 3261830027
+        }
+    ]
+}
