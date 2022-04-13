@@ -1,18 +1,17 @@
-#ifndef _Scenario_
-#define _Scenario_
+#ifndef _Scene_
+#define _Scene_
 
 #include <Arduino.h>
 
-class Scenario{
+class Scene{
 protected:
 
 public:
-    String activatedPublisherName;
-    String activatedEvent;
-    String executorValueName;
+    String activator;
+    String executor;
     String event;
     uint32_t target;
-    Scenario(){};
+    Scene(){};
 
 };
 

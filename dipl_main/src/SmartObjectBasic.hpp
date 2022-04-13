@@ -7,7 +7,7 @@
 #include <string>
 
 #include "SmartValue.hpp"
-#include "SmartPublisher.hpp"
+#include "SmartActivator.hpp"
 #include "Scenario.hpp"
 
 using namespace std;
@@ -16,50 +16,63 @@ class SmartObjectBasic{
 protected:
     painlessMesh*  mesh;
     StaticJsonDocument<512> settings;
-    vector<Scenario> scenes;
+    vector<Scene> scenes;
     vector<SmartValue> values;
-    vector<SmartPublisher> pub;
+    vector<SmartActivator> pub;
 
     String systemMode = "local";
 
     function<void(const uint32_t &, const String &)> receivedCallback = [this](const uint32_t &from, const String &msg ){
         Serial.printf("bridge: Received from %u msg=%s\n", from, msg.c_str());
         
-        DynamicJsonDocument data(512);
+        DynamicJsonDocument data(256);
         deserializeJson(data, msg);
         if(data["command"].as<String>() == "nodeWorking"){
 
         }else
 
         if(data["command"].as<String>() == "systemMode"){
-            this->systemMode = data["state"].as<String>();
+            this->systemMode = data["mode"].as<String>();
         }else
 
-        if(data["command"].as<String>() == "event"){
+        if(data["command"].as<String>() == "sendEventToExecutor"){
             if(data["target"].as<uint32_t>() != this->mesh->getNodeId()){
-                this->sendEvent(data["target"].as<uint32_t>(), data["executor"].as<String>(), data["event"].as<String>());
+                this->sendEventToExecutor(data["target"].as<uint32_t>(), data["executor"].as<String>(), data["event"].as<String>());
             }else{
+                String executor = data["executor"].as<String>();
                 for(uint32_t i = 0; i < this->scenes.size(); ++i){
-                    if(this->values[i].getName() == data["executor"].as<String>()){
+                    if(this->values[i].getName() == executor){
                         this->values[i].processEvent(data["event"].as<String>());
                     }
                 }
             }
-        }
+        }else
 
-    };
-
-    function<void(const SmartPublisher*, const String&)> analizer = [this](const SmartPublisher* sp, const String& event){
-
-            for(uint32_t i = 0; i < this->scenes.size(); ++i){
-                if(this->scenes[i].activatedPublisherName == sp->getName()){
-                    if(this->scenes[i].activatedEvent == "" || this->scenes[i].activatedEvent == event){
-                        this->sendEvent(this->scenes[i].target, this->scenes[i].executorValueName, event);
+        
+        if(data["command"].as<String>() == "sendEventToRoot"){
+            String activator = data["activator"].as<String>();
+            if(this->mesh->isRoot()){
+                for(uint32_t i = 0; i < this->scenes.size(); ++i){
+                    if(this->scenes[i].activator == activator){
+                        this->sendEventToExecutor(this->scenes[i].target, this->scenes[i].executor, this->scenes[i].event);
                     }
                 }
+            }else{
+                this->sendEventToRoot(activator);
             }
+        }
+    };
 
-
+    function<void(const SmartActivator*)> analizer = [this](const SmartActivator* sp){
+        if (this->systemMode == "local"){
+            for(uint32_t i = 0; i < this->scenes.size(); ++i){
+                if(this->scenes[i].activator == sp->getName()){
+                    this->sendEventToExecutor(this->scenes[i].target, this->scenes[i].executor, this->scenes[i].event);
+                }
+            }
+        }else{
+             this->sendEventToRoot(sp->getName());
+        }
     };
 
 public:
@@ -80,37 +93,82 @@ public:
         {
             Serial.println("There was an error opening the file");
             return;
-        }
-
-        else
-        {
+        }else{
             Serial.println("File opened!");
             DeserializationError error = deserializeJson(settings, file);
             if (error)
             {
                 Serial.println("error...");
-            }
-            else
-            {
+            }else{
                 Serial.println("deserialize settings");
             }
-            Serial.println("");
         }
 
         file.close();
-        Serial.println("");
+        Serial.println("---SETTINGS LOADED---\n");
 
-
+        loadScenes();
     }
 
-    void sendEvent(const uint32_t& target, const String& executor, const String& event){
-        if (this->systemMode == "local"){
+    void loadScenes(){
+        for(int i = 0; i < settings["scenes"].size(); ++i){
+            Scene sc = Scene();
+            sc.activator = settings["scenes"][i]["activator"].as<String>();
+            sc.event = settings["scenes"][i]["event"].as<String>();
+            sc.executor = settings["scenes"][i]["executor"].as<String>();
+            sc.target = settings["scenes"][i]["target"].as<uint32_t>();
 
-        }else{
-            
+            scenes.push_back(sc);
+            Serial.printf("added scene: activator=%s; event=%s; executor=%s; target=%u;\n", sc.activator.c_str(), sc.event.c_str(), sc.executor.c_str(), sc.target);
         }
     }
 
+    void sendEventToExecutor(const uint32_t& target, const String& executor, const String& event){
+        DynamicJsonDocument data(128);
+
+        data["command"] = "sendEventToExecutor";
+        data["target"] = target;
+        data["executor"] = executor;
+        data["event"] = event;
+
+        String out;
+        serializeJson(data, out);
+
+        for(uint32_t i = 0; i < settings["mesh"]["childs"].size(); ++i){
+            for(uint32_t j = 0; j < settings["mesh"]["childs"][i]["subs"].size(); ++j){
+                uint32_t node = settings["mesh"]["childs"][i]["subs"].as<uint32_t>();
+                if(node == target){
+                    mesh->sendSingle(node, out);
+                }
+            }
+        }
+        mesh->sendSingle(settings["mesh"]["parent"].as<uint32_t>(), out);
+    }
+
+    void sendEventToRoot(const String& activator){
+        DynamicJsonDocument data(128);
+
+        data["command"] = "sendEventToRoot";
+        data["activator"] = activator;
+
+        String out;
+        serializeJson(data, out);
+
+        mesh->sendSingle(settings["mesh"]["parent"].as<uint32_t>(), out);
+    }
+
+    SmartValue* makeSmartValue(const String& name_of_value, 
+                const function<void(const String&, String&)>& parseEvent_setNewValue,
+                const function<void(const String&)>& processValue_doSometing
+                ){
+        values.emplace_back(name_of_value, parseEvent_setNewValue, processValue_doSometing);
+        return &values.back();
+    }
+
+    SmartActivator* makeSmartPublisher(const String& name_of_activator){
+        pub.emplace_back(name_of_activator, this->analizer);
+        return &pub.back();
+    }
 };
 
 #endif

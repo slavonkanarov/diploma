@@ -9,20 +9,30 @@ using namespace std;
 
 class SmartValue{
 protected:
-    function<void(const String&)> func;
+    function<void(const String&)> parseValue;
+    function<void(const String&, String&)> parseEvent;
     String name;
     String value;
-    bool sig;
 public:
 
-    SmartValue(const String& name_of_device, 
-                const function<void(const String&)>& f){
-        func = f;
-        name = name_of_device;
+    SmartValue(const String& name_of_value, 
+                const function<void(const String&, String&)>& parseEvent_setNewValue,
+                const function<void(const String&)>& processValue_doSometing){
+        parseEvent = parseEvent_setNewValue;
+        parseValue = processValue_doSometing;
+        name = name_of_value;
     };
 
     void processEvent(const String& event){
-        func(event);
+        parseEvent(event, this->name);
+    }
+
+    void processValue(){
+        parseValue(this->getValue());
+    }
+
+    void setValue(const String& new_value){
+        value = new_value;
     }
 
     const String& getValue() const{

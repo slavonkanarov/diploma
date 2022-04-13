@@ -60,11 +60,16 @@ void setup() {
 auto t = millis();
 
 void loop() {
+  
   mesh.update();
   if (millis() - t > 5000){
     Serial.print(WiFi.RSSI());
     Serial.printf(WiFi.SSID().c_str());
     Serial.printf("\n");
     t = millis();
+
+    
+    Serial.print(mesh.asNodeTree().toString());
+    Serial.print("\n");
   }
 }
