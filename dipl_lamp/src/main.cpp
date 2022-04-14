@@ -20,6 +20,7 @@ painlessMesh  mesh;
 SmartObjectBasic SO(&mesh);
 
 auto button1 = SO.makeSmartActivator("button1.click");
+//при вызове этой переменной будут обработаны сценарии с активатором button1.click
 
 void setup() {
   Serial.begin(115200);
@@ -45,13 +46,13 @@ auto t = millis();
 void loop() {
   
   mesh.update();
-  if (millis() - t > 5000){
+  if (millis() - t > 3000){
     Serial.print(WiFi.RSSI());
     Serial.printf(WiFi.SSID().c_str());
     Serial.printf("\n");
     t = millis();
     Serial.print("\n");
 
-    button1->publish();
+    button1->publish();//активируем сценарий
   }
 }

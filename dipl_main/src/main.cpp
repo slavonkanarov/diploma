@@ -47,8 +47,11 @@ IPAddress myAPIP(0,0,0,0);
 
 SmartObjectMain SO(&mesh);
 
-auto value = SO.makeSmartValue("light1", 
+auto value = SO.makeSmartValue("light1", //имя переменной
 [&](const String& event, String& value){
+/*
+функция обрабатывает приходящий ивент сформированный сценарием и должна обновить состояние value
+*/
   if(event == ""){
     if(value == "on"){
       value = "off";
@@ -56,16 +59,17 @@ auto value = SO.makeSmartValue("light1",
       value = "on";
     }
   }
-
 },
 [&](const String& value){
+/*
+функция обрабатывает состояние value и принимает действие на основе этого
+*/
   if (value == "on"){
     digitalWrite(D0, LOW);
   }else{
     digitalWrite(D0, HIGH);
   }
-}
-);
+});
 
 void setup() {
   Serial.begin(115200);

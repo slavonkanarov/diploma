@@ -34,6 +34,7 @@ public:
 
     void setValue(const String& new_value){
         value = new_value;
+        processValue();
     }
 
     const String& getValue() const{
