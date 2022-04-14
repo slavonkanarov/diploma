@@ -52,7 +52,6 @@ protected:
         if(data["command"].as<String>() == "sendEventToRoot"){
             String activator = data["activator"].as<String>();
             if(this->mesh->isRoot()){
-                Serial.printf("Im root\n");
                 for(uint32_t i = 0; i < this->scenes.size(); ++i){
                     if(this->scenes[i].activator == activator){
                         Serial.printf("find scene: activator=%s; event=%s; executor=%s; target=%u;\n",
