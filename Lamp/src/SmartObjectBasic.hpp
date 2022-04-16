@@ -151,8 +151,13 @@ public:
         }
 
         for(uint32_t i = 0; i < settings["mesh"]["childs"].size(); ++i){
+            uint32_t node = settings["mesh"]["childs"][i]["nodeId"].as<uint32_t>();
+            if(node == target){
+                mesh->sendSingle(node, out);
+                return;
+            }
             for(uint32_t j = 0; j < settings["mesh"]["childs"][i]["subs"].size(); ++j){
-                uint32_t node = settings["mesh"]["childs"][i]["subs"].as<uint32_t>();
+                node = settings["mesh"]["childs"][i]["subs"].as<uint32_t>();
                 if(node == target){
                     mesh->sendSingle(node, out);
                     return;
