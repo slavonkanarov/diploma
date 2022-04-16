@@ -12,6 +12,11 @@
 
 #include "IPAddress.h"
 #include "painlessMesh.h"
+#include "Timer.h"
+#include "Settings.h"
+#include "LampConsts.h"
+#include "WiFiConsts.h"
+#include "hexConverter.h"
 
 #ifdef ESP8266
 #include "Hash.h"
@@ -34,6 +39,14 @@
 
 #include "SmartObjectMain.hpp"
 
+//lamp settings
+  // uint8_t green = GREEN;
+  // uint8_t red   = RED;
+  // uint8_t blue  = BLUE;
+  // uint8_t brightness = BRIGHTNESS;
+  // uint8_t mode = MODE;
+  // Settings matrix;
+
 // Prototype
 void newConnectionCallback(uint32_t nodeId);
 void changedConnectionCallback();
@@ -47,33 +60,42 @@ IPAddress myAPIP(0,0,0,0);
 
 SmartObjectMain SO(&mesh);
 
-auto value = SO.makeSmartValue("light1", //имя переменной
-[](const String& event, String& value){
-/*
-функция обрабатывает приходящий ивент сформированный сценарием и должна обновить состояние value
-*/
-  if(event == ""){
-    if(value == "on"){
-      value = "off";
-    }else{
-      value = "on";
-    }
-  }
-},
-[](const String& value){
-/*
-функция обрабатывает состояние value и принимает действие на основе этого
-*/
-  if (value == "on"){
-    digitalWrite(D0, LOW);
-  }else{
-    digitalWrite(D0, HIGH);
-  }
-});
+
+// auto value = SO.makeSmartValue("light1", //имя переменной
+// [](const String& event, String& value){
+// /*
+// функция обрабатывает приходящий ивент сформированный сценарием и должна обновить состояние value
+// */
+//   if(event == ""){
+//     if(value == "on"){
+//       value = "off";
+//     }else{
+//       value = "on";
+//     }
+//   }
+// },
+// [](const String& value){
+// /*
+// функция обрабатывает состояние value и принимает действие на основе этого
+// */
+//   if (value == "on"){
+//     digitalWrite(D0, LOW);
+//     brightness = 255;
+//   }else{
+//     digitalWrite(D0, HIGH);
+//     brightness = 0;
+//   }
+// });
+
+
+  
 
 void setup() {
   Serial.begin(115200);
   pinMode(D0, OUTPUT);
+
+  // matrix.setAll(mode, brightness, red, green, blue);
+  // matrix.show();
 
     // Initialize SPIFFS
   if (!SPIFFS.begin())
@@ -160,6 +182,9 @@ void loop() {
     myIP = getlocalIP();
     Serial.println("My IP is " + myIP.toString());
   }
+  // matrix.setAll(mode, brightness, red, green, blue); 
+  // matrix.show();
+  // delay(20);
 }
 
 void newConnectionCallback(uint32_t nodeId) {

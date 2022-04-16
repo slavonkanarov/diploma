@@ -7,7 +7,7 @@
 //
 //************************************************************
 #include "painlessMesh.h"
-
+#include <Arduino.h>
 #include "SmartObjectBasic.hpp"
 
 #define   MESH_PREFIX     "whateverYouLike"
@@ -20,11 +20,16 @@ painlessMesh  mesh;
 SmartObjectBasic SO(&mesh);
 
 auto button1 = SO.makeSmartActivator("button1.click");
+int button_pin = D1;
+int leed_pin = D2;
+
 //при вызове этой переменной будут обработаны сценарии с активатором button1.click
 
 void setup() {
   Serial.begin(115200);
-
+  pinMode(button_pin, INPUT_PULLUP);
+  pinMode(leed_pin, OUTPUT);
+  digitalWrite(leed_pin, HIGH);
   // Initialize SPIFFS
   if (!SPIFFS.begin())
   {
@@ -43,6 +48,15 @@ void setup() {
 
 auto t = millis();
 
+bool state = digitalRead(button_pin);
+void send() {
+  if(state != digitalRead(button_pin)){
+    state = !state;
+    button1->publish();//активируем сценарий
+    digitalWrite(leed_pin, state);
+  }
+}
+
 void loop() {
   
   mesh.update();
@@ -52,7 +66,6 @@ void loop() {
     Serial.printf("\n");
     t = millis();
     Serial.print("\n");
-
-    button1->publish();//активируем сценарий
   }
+  send();
 }

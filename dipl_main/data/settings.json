@@ -3,18 +3,17 @@
         "parent": 3665705184,
         "childs": [
             {
-                "nodeId": 2785546145,
+                "nodeId": 3662020501,
+                "subs": []
+            },
+            {
+                "nodeId": 2439575565,
                 "subs": []
             }
         ]
     },
 
     "scenes": [
-        {
-            "activator":"button1.click",
-            "event": "",
-            "executor":"light1",
-            "target": 3665705184
-        }
+       
     ]
 }
