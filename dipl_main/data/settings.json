@@ -14,6 +14,11 @@
     },
 
     "scenes": [
-       
+        {
+            "activator":"button1.click",
+            "event": "",
+            "executor":"light1",
+            "target": 2439575565
+        }
     ]
 }
