@@ -39,11 +39,11 @@ protected:
             if(data["target"].as<uint32_t>() != this->mesh->getNodeId()){
                 this->sendEventToExecutor(data["target"].as<uint32_t>(), data["executor"].as<String>(), data["event"].as<String>());
             }else{
-                Serial.printf("trying to find scene");
+                Serial.printf("trying to find executor");
                 String executor = data["executor"].as<String>();
-                for(uint32_t i = 0; i < this->scenes.size(); ++i){
+                for(uint32_t i = 0; i < this->values.size(); ++i){
                     if(this->values[i].getName() == executor){
-                        Serial.printf("scene is finded");
+                        Serial.printf("executor is finded");
                         this->values[i].processEvent(data["event"].as<String>());
                     }
                 }
