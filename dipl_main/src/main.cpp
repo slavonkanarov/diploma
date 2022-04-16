@@ -27,8 +27,8 @@
 #define   MESH_PASSWORD   "somethingSneaky"
 #define   MESH_PORT       5555
 
-#define   STATION_SSID     ""
-#define   STATION_PASSWORD ""
+#define   STATION_SSID     "ssid_main"
+#define   STATION_PASSWORD "1234567890"
 
 #define HOSTNAME "HTTP_BRIDGE"
 
@@ -48,7 +48,7 @@ IPAddress myAPIP(0,0,0,0);
 SmartObjectMain SO(&mesh);
 
 auto value = SO.makeSmartValue("light1", //имя переменной
-[&](const String& event, String& value){
+[](const String& event, String& value){
 /*
 функция обрабатывает приходящий ивент сформированный сценарием и должна обновить состояние value
 */
@@ -60,7 +60,7 @@ auto value = SO.makeSmartValue("light1", //имя переменной
     }
   }
 },
-[&](const String& value){
+[](const String& value){
 /*
 функция обрабатывает состояние value и принимает действие на основе этого
 */
@@ -86,7 +86,7 @@ void setup() {
   }
 
   mesh.setDebugMsgTypes( ERROR | STARTUP | CONNECTION | DEBUG);
-  mesh.init( MESH_PREFIX, MESH_PASSWORD, MESH_PORT, WIFI_AP_STA, 6 );
+  mesh.init( MESH_PREFIX, MESH_PASSWORD, MESH_PORT, WIFI_AP_STA, 1 );
   mesh.stationManual(STATION_SSID, STATION_PASSWORD);
   mesh.setHostname(HOSTNAME);
   mesh.setRoot(true);
