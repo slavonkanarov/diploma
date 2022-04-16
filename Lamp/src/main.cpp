@@ -89,10 +89,17 @@ void setup() {
   SO.initMesh();
 
 }
-
+auto t = millis();
 void loop() {
   mesh.update();
+  if (millis() - t > 3000){
+    Serial.print(WiFi.RSSI());
+    Serial.printf(WiFi.SSID().c_str());
+    Serial.printf("\n");
+    t = millis();
+    Serial.print("\n");
+  }
   matrix.setAll(mode, brightness, red, green, blue); 
   matrix.show();
-  delay(20);
+  // delay(20);
 }

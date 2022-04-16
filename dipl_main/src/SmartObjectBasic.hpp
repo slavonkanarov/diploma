@@ -155,6 +155,7 @@ public:
                 uint32_t node = settings["mesh"]["childs"][i]["subs"].as<uint32_t>();
                 if(node == target){
                     mesh->sendSingle(node, out);
+                    Serial.printf("Resend to: %u", target);
                     return;
                 }
             }

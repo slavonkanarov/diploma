@@ -9,10 +9,10 @@
 #define FRAMES_PER_SECOND   60
 
 //-----default lightning settings for led--------//
-#define RED 127
-#define GREEN 254
+#define RED 227
+#define GREEN 154
 #define BLUE 212
-#define BRIGHTNESS 160
+#define BRIGHTNESS 120
 #define MODE 54
 #define PRINTING_DATA (char*)"cvtirer"
 
