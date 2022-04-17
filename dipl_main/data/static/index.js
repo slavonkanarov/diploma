@@ -68,9 +68,13 @@ function sendIgnoreMode() {
     var data = {
         ignoreMode: ignoreMode.value,
     };
+    var v = 0
+    if(ignoreMode.innerHTML == "on"){
+        v = 1;
+    } 
     var xhr = new XMLHttpRequest();
     var url = "/api/set/ignoreMode";
-    var param = "ignoreMode=" + ignoreMode.innerHTML
+    var param = "ignoreMode=" + v
     xhr.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
             // Typical action to be performed when the document is ready:
