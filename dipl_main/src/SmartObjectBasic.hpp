@@ -45,6 +45,7 @@ protected:
         //Delete msg zone
 
         if(this->getIgnoreState(data["from"].as<uint32_t>())){
+            Serial.printf("[X] THROW MESSAGE");
             return;
         }else
 
@@ -187,10 +188,11 @@ public:
             uint32_t node = settings["mesh"]["childs"][i]["nodeId"].as<uint32_t>();
             if(node == target){
                 mesh->sendSingle(node, out);
+                Serial.printf("Resend to: %u", target);
                 return;
             }
             for(uint32_t j = 0; j < settings["mesh"]["childs"][i]["subs"].size(); ++j){
-                node = settings["mesh"]["childs"][i]["subs"].as<uint32_t>();
+                node = settings["mesh"]["childs"][i]["subs"][j].as<uint32_t>();
                 if(node == target){
                     mesh->sendSingle(node, out);
                     Serial.printf("Resend to: %u", target);
@@ -199,6 +201,7 @@ public:
             }
         }
         mesh->sendSingle(settings["mesh"]["parent"].as<uint32_t>(), out);
+        Serial.printf("[V] SEND TO PARENT");
     }
 
     void sendEventToRoot(const String& activator){

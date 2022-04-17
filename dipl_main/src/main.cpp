@@ -32,8 +32,8 @@
 #define   MESH_PASSWORD   "somethingSneaky"
 #define   MESH_PORT       5555
 
-#define   STATION_SSID     "grrrnet"
-#define   STATION_PASSWORD "pt10mzx6"
+#define   STATION_SSID     "aaaa1234"
+#define   STATION_PASSWORD "12345678"
 
 #define HOSTNAME "HTTP_BRIDGE"
 
@@ -70,7 +70,7 @@ void setup() {
   else{SO.loadSettings();}
 
   mesh.setDebugMsgTypes( ERROR | STARTUP | CONNECTION | DEBUG);
-  mesh.init( MESH_PREFIX, MESH_PASSWORD, MESH_PORT, WIFI_AP_STA, 6);
+  mesh.init( MESH_PREFIX, MESH_PASSWORD, MESH_PORT, WIFI_AP_STA, 1);
   mesh.stationManual(STATION_SSID, STATION_PASSWORD);
   mesh.setHostname(HOSTNAME);
   mesh.setRoot(true);
@@ -99,6 +99,7 @@ void setup() {
     ignoreMode =  request->arg("ignoreMode").toInt();
     SO.ignoreConnectionState(nodeToIgnore1, nodeToIgnore2, ignoreMode);
     request->send(200, "text/plain", "OK");
+    Serial.printf("IGNORE MODE RECIEVE: %u\n", ignoreMode);
   });
 
   server.on("/api/get/systemMode", HTTP_GET, [](AsyncWebServerRequest *request){

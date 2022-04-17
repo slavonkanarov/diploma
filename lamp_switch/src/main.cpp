@@ -42,7 +42,7 @@ void setup() {
 
   mesh.setDebugMsgTypes( ERROR | STARTUP | CONNECTION | DEBUG ); 
   mesh.init( MESH_PREFIX, MESH_PASSWORD, &userScheduler, MESH_PORT );
-
+  mesh.setContainsRoot(true);
   SO.initMesh();
 }
 
