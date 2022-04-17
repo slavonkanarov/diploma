@@ -22,6 +22,10 @@ public:
         mesh->sendBroadcast(out, true);
     }
 
+    const String& getSystemMode(){
+        return systemModeState;
+    }
+
     void ignoreConnectionState(const uint32_t& node1, const uint32_t& node2, bool state){
         ignoreNodeState(node1, node2, state);
         ignoreNodeState(node2, node1, state);

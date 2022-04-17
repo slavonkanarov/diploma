@@ -1,18 +1,23 @@
-<form>Text to Broadcast<br>
-    <input type='text' value='sometext' name='BROADCAST'>
-    <br>
-    <br>
-    <input type='submit' value='Submit'>
-</form>
-<br>
-<br>
-<form action="/api" method="get">
-    <input type="hidden" name="systemMode" value="local">
-    <input type='submit' value='local'>
-</form>
-<br>
-<br>
-<form action="/api" method="get">
-    <input type="hidden" name="systemMode" value="center">
-    <input type='submit' value='center'>
-</form>
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Демонстрация системы</title>
+
+    <link rel="stylesheet" type="text/css" href="static/normalize.css">
+    <link rel="stylesheet" type="text/css" href="static/style.css">
+</head>
+
+<body>
+    <div class="maincontent">
+        <label>systemMode</label>
+        <li class="light_button" id="systemMode" onclick="sendSystemMode()"></li>
+        <label>Connect Home and Bathhouse</label>
+        <li class="light_button" id="ignoreMode" onclick="sendIgnoreMode()"></li>
+        
+    </div>
+</body>
+
+</html>

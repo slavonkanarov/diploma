@@ -32,25 +32,19 @@
 #define   MESH_PASSWORD   "somethingSneaky"
 #define   MESH_PORT       5555
 
-#define   STATION_SSID     "ssid_main"
-#define   STATION_PASSWORD "1234567890"
+#define   STATION_SSID     "grrrnet"
+#define   STATION_PASSWORD "pt10mzx6"
 
 #define HOSTNAME "HTTP_BRIDGE"
 
 #include "SmartObjectMain.hpp"
 
-//lamp settings
-  // uint8_t green = GREEN;
-  // uint8_t red   = RED;
-  // uint8_t blue  = BLUE;
-  // uint8_t brightness = BRIGHTNESS;
-  // uint8_t mode = MODE;
-  // Settings matrix;
-
 // Prototype
 void newConnectionCallback(uint32_t nodeId);
 void changedConnectionCallback();
 void nodeTimeAdjustedCallback(int32_t offset);
+String getContentType(String);
+bool handleFileRead(AsyncWebServerRequest*);
 IPAddress getlocalIP();
 
 painlessMesh  mesh;
@@ -60,36 +54,6 @@ IPAddress myAPIP(0,0,0,0);
 
 SmartObjectMain SO(&mesh);
 
-
-// auto value = SO.makeSmartValue("light1", //имя переменной
-// [](const String& event, String& value){
-// /*
-// функция обрабатывает приходящий ивент сформированный сценарием и должна обновить состояние value
-// */
-//   if(event == ""){
-//     if(value == "on"){
-//       value = "off";
-//     }else{
-//       value = "on";
-//     }
-//   }
-// },
-// [](const String& value){
-// /*
-// функция обрабатывает состояние value и принимает действие на основе этого
-// */
-//   if (value == "on"){
-//     digitalWrite(D0, LOW);
-//     brightness = 255;
-//   }else{
-//     digitalWrite(D0, HIGH);
-//     brightness = 0;
-//   }
-// });
-
-
-  
-
 void setup() {
   Serial.begin(115200);
   pinMode(D0, OUTPUT);
@@ -98,17 +62,11 @@ void setup() {
   // matrix.show();
 
     // Initialize SPIFFS
-  if (!SPIFFS.begin())
-  {
-    Serial.println("Failed to mount SPIFFS");
-  }
-  else
-  {
-    SO.loadSettings();
-  }
+  if (!SPIFFS.begin()){ Serial.println("Failed to mount SPIFFS");}
+  else{SO.loadSettings();}
 
   mesh.setDebugMsgTypes( ERROR | STARTUP | CONNECTION | DEBUG);
-  mesh.init( MESH_PREFIX, MESH_PASSWORD, MESH_PORT, WIFI_AP_STA, 1 );
+  mesh.init( MESH_PREFIX, MESH_PASSWORD, MESH_PORT, WIFI_AP_STA, 6);
   mesh.stationManual(STATION_SSID, STATION_PASSWORD);
   mesh.setHostname(HOSTNAME);
   mesh.setRoot(true);
@@ -123,53 +81,23 @@ void setup() {
 
 //---------------------------------------------------------------------------
   //Async webserver
-  server.on("/admin", HTTP_GET, [](AsyncWebServerRequest *request){
-    String text = String("");
-
-    text += mesh.asNodeTree().toString();
-      
-    request->send(200, "text/html", text.c_str());
-  });
-
   server.on("/buf", HTTP_GET, [](AsyncWebServerRequest *request){
-    String text = String("");
-
-    text += mesh.asNodeTree().toString();
-    
+    String text = mesh.asNodeTree().toString();
     request->send(200, "text/html", text.c_str());
   });
 
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    String text = String(" "\
-                         "");
-
-    text += mesh.asNodeTree().toString();
-
-    if (request->hasArg("BROADCAST")){
-      String msg = request->arg("BROADCAST");
-      mesh.sendBroadcast(msg, true);
-      
-    };
-
-    request->send(SPIFFS, "/index.html", String());
+  server.on("/api/set/systemMod", HTTP_POST, [](AsyncWebServerRequest *request){
+    DynamicJsonDocument data(64);
+    deserializeJson(data, request->arg("plain"));
+    SO.systemMode(data["systemMode"].as<String>());
+    Serial.println("systemMod " + data["systemMode"].as<String>());
+    request->send(200, "text/plain", "OK");
   });
 
-  server.on("/api", HTTP_GET, [](AsyncWebServerRequest *request){
-    if (request->hasArg("systemMode")){
-      SO.systemMode(request->arg("systemMode"));
-       Serial.println("systemMod " + request->arg("systemMode"));
-    };
-    
-    request->send(SPIFFS, "/index.html", String());
-  });
 
-  server.on("/api", HTTP_POST, [](AsyncWebServerRequest *request){
-    if (request->hasArg("systemMode")){
-      SO.systemMode(request->arg("systemMode"));
-       Serial.println("systemMod " + request->arg("systemMode"));
-    };
-    
-    request->send(200, "text/html", "");
+  server.onNotFound([](AsyncWebServerRequest *request){
+    if (!handleFileRead(request))
+          request->send(404, "text/plain", "FileNotFound");
   });
 
   server.begin();
@@ -182,9 +110,6 @@ void loop() {
     myIP = getlocalIP();
     Serial.println("My IP is " + myIP.toString());
   }
-  // matrix.setAll(mode, brightness, red, green, blue); 
-  // matrix.show();
-  // delay(20);
 }
 
 void newConnectionCallback(uint32_t nodeId) {
@@ -201,4 +126,37 @@ void nodeTimeAdjustedCallback(int32_t offset) {
 
 IPAddress getlocalIP() {
   return IPAddress(mesh.getStationIP());
+}
+
+//Web
+String getContentType(String filename) {
+  if (filename.endsWith(".htm")) return "text/html";
+  else if (filename.endsWith(".html")) return "text/html";
+  else if (filename.endsWith(".json")) return "application/json";
+  else if (filename.endsWith(".css")) return "text/css";
+  else if (filename.endsWith(".js")) return "application/javascript";
+  else if (filename.endsWith(".png")) return "image/png";
+  else if (filename.endsWith(".gif")) return "image/gif";
+  else if (filename.endsWith(".jpg")) return "image/jpeg";
+  else if (filename.endsWith(".ico")) return "image/x-icon";
+  else if (filename.endsWith(".xml")) return "text/xml";
+  else if (filename.endsWith(".pdf")) return "application/x-pdf";
+  else if (filename.endsWith(".zip")) return "application/x-zip";
+  else if (filename.endsWith(".gz")) return "application/x-gzip";
+  return "text/plain";
+}
+
+bool handleFileRead(AsyncWebServerRequest *request) {
+  String path = request->url();
+  if (path.endsWith("/")) path += "index.html";
+  if(path[0] != '/')path = String("/") + path;
+  String contentType = getContentType(path);
+  String pathWithGz = path + ".gz";
+  if (SPIFFS.exists(pathWithGz) || SPIFFS.exists(path)) {
+    if (SPIFFS.exists(pathWithGz))
+      path += ".gz";
+    request->send(SPIFFS, path, contentType);
+    return true;
+  }
+  return false;
 }
