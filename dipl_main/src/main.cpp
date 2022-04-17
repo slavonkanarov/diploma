@@ -54,6 +54,10 @@ IPAddress myAPIP(0,0,0,0);
 
 SmartObjectMain SO(&mesh);
 
+bool ignoreMode = true;
+uint32_t nodeToIgnore1 = 0;
+uint32_t nodeToIgnore2 = 0;
+
 void setup() {
   Serial.begin(115200);
   pinMode(D0, OUTPUT);
@@ -86,12 +90,31 @@ void setup() {
     request->send(200, "text/html", text.c_str());
   });
 
-  server.on("/api/set/systemMod", HTTP_POST, [](AsyncWebServerRequest *request){
-    DynamicJsonDocument data(64);
-    deserializeJson(data, request->arg("plain"));
-    SO.systemMode(data["systemMode"].as<String>());
-    Serial.println("systemMod " + data["systemMode"].as<String>());
+  server.on("/api/set/systemMode", HTTP_GET, [](AsyncWebServerRequest *request){
+    SO.systemMode(request->arg("systemMode"));;
     request->send(200, "text/plain", "OK");
+  });
+
+  server.on("/api/set/ignoreMode", HTTP_GET, [](AsyncWebServerRequest *request){
+    ignoreMode =  request->arg("ignoreMode").toInt();
+    SO.ignoreConnectionState(nodeToIgnore1, nodeToIgnore2, ignoreMode);
+    request->send(200, "text/plain", "OK");
+  });
+
+  server.on("/api/get/systemMode", HTTP_GET, [](AsyncWebServerRequest *request){
+    DynamicJsonDocument data(64);
+    data["ignoreMode"] = SO.getSystemMode();
+    String out;
+    serializeJson(data, out);
+    request->send(200, "text/plain", out);
+  });
+
+  server.on("/api/get/ignoreMode", HTTP_GET, [](AsyncWebServerRequest *request){
+    DynamicJsonDocument data(64);
+    data["ignoreMode"] = ignoreMode;
+    String out;
+    serializeJson(data, out);
+    request->send(200, "text/plain", out);
   });
 
 

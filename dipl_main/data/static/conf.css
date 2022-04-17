@@ -1,0 +1,84 @@
+.WiFiSet {
+    width: 80%;
+    padding: 40px;
+    background: rgba(0,0,0,.5);
+    box-sizing: border-box;
+    border-radius: 10px;
+}
+
+.WiFiInput{
+    display: flex;
+    justify-content: space-around;
+}
+
+#sendButton{
+    margin-left: 100px;
+}
+
+.update{
+    display: flex;
+    justify-content: space-around;
+    margin-top: 25px;
+    width: 80%;
+    padding: 40px;
+    background: rgba(0,0,0,.5);
+    box-sizing: border-box;
+    border-radius: 10px;
+}
+
+.maincontent{
+    display: flex;
+    flex-direction:column;
+    align-items:center;
+    margin-top: 15px;
+    justify-content: space-around;
+}
+
+.update{
+    display: flex;
+    justify-content: space-around;
+}
+
+
+.run_light_button{
+    font-size: 12px;
+}
+
+.fl_upld{
+    width:350px;
+}
+
+#fl_inp, #inputSubmit{
+    display:none;
+}
+
+@media screen and (max-width: 480px) {
+    .WiFiInput{
+        flex-direction:column;
+        align-items:center;
+        margin-top: 15px;
+        justify-content: space-around;
+    }
+    #sendButton{
+        margin-left: 0px;
+    }
+    #inputFile{
+        font-size: 12px;
+    }
+    #uploadFile{
+        margin-top: 0px;
+    }
+    .update{
+        flex-direction:column;
+        align-items:flex-start;
+        flex-wrap: wrap;
+        justify-content: space-around;
+    }
+    #WiFiModeSet, #APWiFiModeSet{
+        margin-top: 20px;
+        transform: translate(-25%, 0);
+    }
+    .fl_upld label{
+        font-size: 11px;
+    }
+}

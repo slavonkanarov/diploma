@@ -7,7 +7,7 @@ function getSystemMode() {
             return d.json();
         })
         .then(function(d) {
-            systemMode = d.systemMode;
+            systemMode.value = d.systemMode;
             setTimeout(getSystemMode, 500);
         })
         .catch(function(err) {
@@ -23,7 +23,7 @@ function getIgnore() {
             return d.json();
         })
         .then(function(d) {
-            ignoreMode = d.ignoreMode;
+            ignoreMode.value = d.ignoreMode;
             setTimeout(getIgnore, 500);
         })
         .catch(function(err) {
@@ -35,11 +35,15 @@ getIgnore();
 
 function sendSystemMode() {
     console.log("sendSystemMode button was clicked!");
-    var data = {
-        systemMode: systemMode.value,
-    };
+    if (systemMode.innerHTML === "local"){
+        systemMode.innerHTML = "center";
+    }else{
+        systemMode.innerHTML = "local";
+    }
+
     var xhr = new XMLHttpRequest();
     var url = "/api/set/systemMode";
+    var param = "systemMode=" + systemMode.innerHTML
     xhr.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
             // Typical action to be performed when the document is ready:
@@ -48,17 +52,25 @@ function sendSystemMode() {
             }
         }
     };
-    xhr.open("POST", url, true);
-    xhr.send(JSON.stringify(data));
+    xhr.open("GET", url + "?" + param, true);
+    xhr.send();
+    
+    console.log(JSON.stringify(data));
 };
 
-function sendIgnore() {
+function sendIgnoreMode() {
     console.log("sendIgnore button was clicked!");
+    if (ignoreMode.innerHTML === "on"){
+        ignoreMode.innerHTML = "off";
+    }else{
+        ignoreMode.innerHTML = "on";
+    }
     var data = {
         ignoreMode: ignoreMode.value,
     };
     var xhr = new XMLHttpRequest();
     var url = "/api/set/ignoreMode";
+    var param = "ignoreMode=" + ignoreMode.innerHTML
     xhr.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
             // Typical action to be performed when the document is ready:
@@ -67,6 +79,6 @@ function sendIgnore() {
             }
         }
     };
-    xhr.open("POST", url, true);
-    xhr.send(JSON.stringify(data));
+    xhr.open("GET", url + "?" + param, true);
+    xhr.send();
 };

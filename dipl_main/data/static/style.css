@@ -5,7 +5,7 @@ body {
   margin:0;
   padding:0;
   font-family: sans-serif;
-  background:#ffffff;
+  background:#383838;
 }
 .menu {
   background-color: #ffffff;
@@ -64,6 +64,11 @@ body {
 }
 
 .light_button a{
+  background: #353333;
+  color: #03e9f4;
+}
+
+label {
   background: #353333;
   color: #03e9f4;
 }

@@ -13,11 +13,15 @@
 <body>
     <div class="maincontent">
         <label>systemMode</label>
-        <li class="light_button" id="systemMode" onclick="sendSystemMode()"></li>
+        <li class="button light_button" onclick="sendSystemMode()">
+            <a id="systemMode">center</a></li>
+        <br>
+        <br>
         <label>Connect Home and Bathhouse</label>
-        <li class="light_button" id="ignoreMode" onclick="sendIgnoreMode()"></li>
-        
+        <li class="button light_button" onclick="sendIgnoreMode()">
+            <a id="ignoreMode">on</a></li>
     </div>
+    <script src="static/index.js"></script>
 </body>
 
 </html>
