@@ -69,7 +69,7 @@ function sendIgnoreMode() {
         ignoreMode: ignoreMode.value,
     };
     var v = 0
-    if(ignoreMode.innerHTML == "on"){
+    if(ignoreMode.innerHTML == "off"){
         v = 1;
     } 
     var xhr = new XMLHttpRequest();
