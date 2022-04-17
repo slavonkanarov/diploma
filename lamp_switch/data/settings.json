@@ -1,7 +1,12 @@
 {
     "mesh":{
-        "parent": 3665705184,
-        "childs": []
+        "parent": 3662027117,
+        "childs": [
+            {
+                "nodeId": 2439575565,
+                "subs": []
+            }
+        ]
     },
 
     "scenes": [
