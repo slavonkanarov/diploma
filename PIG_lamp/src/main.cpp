@@ -13,10 +13,8 @@
 #include "IPAddress.h"
 #include "painlessMesh.h"
 #include "Timer.h"
+#include "Consts.h"
 #include "Settings.h"
-#include "LampConsts.h"
-#include "WiFiConsts.h"
-#include "hexConverter.h"
 
 #define   MESH_PREFIX     "whateverYouLike"
 #define   MESH_PASSWORD   "somethingSneaky"
@@ -24,13 +22,13 @@
 
 #include "SmartObjectBasic.hpp"
 
-//lamp settings
-uint8_t green = GREEN;
-uint8_t red   = RED;
-uint8_t blue  = BLUE;
-uint8_t brightness = BRIGHTNESS;
-uint8_t mode = MODE;
-Settings matrix;
+// Pig lamp
+int r__ = 0xff;
+int g__ = 0x4d;
+int b__ = 0x00;
+int fade = 3;
+Settings leds;
+
 
 Scheduler userScheduler; // to control your personal task
 painlessMesh  mesh;
@@ -38,7 +36,7 @@ painlessMesh  mesh;
 SmartObjectBasic SO(&mesh);
 
 
-auto value = SO.makeSmartValue("light1", //имя переменной
+auto value = SO.makeSmartValue("lightPig", //имя переменной
 [](const String& event, String& value){
 /*
 функция обрабатывает приходящий ивент сформированный сценарием и должна обновить состояние value
@@ -56,21 +54,26 @@ auto value = SO.makeSmartValue("light1", //имя переменной
 функция обрабатывает состояние value и принимает действие на основе этого
 */
   if (value == "on"){
-    digitalWrite(D0, LOW);
-    brightness = BRIGHTNESS;
+    // digitalWrite(D0, LOW);
+    leds.setAll(0, 0, 0, 10);
   }else{
-    digitalWrite(D0, HIGH);
-    brightness = 0;
+    // digitalWrite(D0, HIGH);
+    leds.setAll(r__, g__, b__, fade);
   }
 });
 
 
 void setup() {
   Serial.begin(115200);
-  pinMode(D0, OUTPUT);
-
-  matrix.setAll(mode, brightness, red, green, blue);
-  matrix.show();
+  // pinMode(D0, OUTPUT);
+  pinMode(redLED, OUTPUT);
+  pinMode(greenLED, OUTPUT);
+  pinMode(blueLED, OUTPUT);
+  analogWrite(redLED, r__);
+  analogWrite(greenLED, g__);
+  analogWrite(blueLED, b__);
+  delay(100);
+  leds.setAll(r__, g__, b__, fade);
 
     // Initialize SPIFFS
   if (!SPIFFS.begin())
@@ -99,7 +102,5 @@ void loop() {
     t = millis();
     Serial.print("\n");
   }
-  matrix.setAll(mode, brightness, red, green, blue); 
-  matrix.show();
-  // delay(20);
+  leds.show();
 }

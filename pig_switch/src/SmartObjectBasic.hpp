@@ -21,7 +21,7 @@ protected:
     vector<SmartValue> values;
     vector<SmartActivator> pub;
 
-    String systemModeState = "local";
+    String systemMode = "local";
 
     function<void(const uint32_t &, const String &)> receivedCallback = [this](const uint32_t &from, const String &msg ){
         Serial.printf("bridge: Received from %u msg=%s\n", from, msg.c_str());
@@ -35,7 +35,7 @@ protected:
         }else
 
         if(data["command"].as<String>() == "systemMode"){
-            this->systemModeState = data["mode"].as<String>();
+            this->systemMode = data["mode"].as<String>();
         }else
         
         if(data["command"].as<String>() == "ignoreNodeState"){
@@ -84,7 +84,7 @@ protected:
     };
 
     function<void(const SmartActivator*)> analizer = [this](const SmartActivator* sp){
-        if (this->systemModeState == "local"){
+        if (this->systemMode == "local"){
             for(uint32_t i = 0; i < this->scenes.size(); ++i){
                 if(this->scenes[i].activator == sp->getName()){
                     Serial.printf("find scene: activator=%s; event=%s; executor=%s; target=%u;\n",
@@ -193,7 +193,6 @@ public:
                 node = settings["mesh"]["childs"][i]["subs"].as<uint32_t>();
                 if(node == target){
                     mesh->sendSingle(node, out);
-                    Serial.printf("Resend to: %u", target);
                     return;
                 }
             }

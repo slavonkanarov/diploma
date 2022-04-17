@@ -1,0 +1,15 @@
+{
+    "mesh":{
+        "parent": 3665705184,
+        "childs": []
+    },
+
+    "scenes": [
+        {
+            "activator":"buttonPig.click",
+            "event": "",
+            "executor":"lightPig",
+            "target": 882456225
+        }
+    ]
+}
