@@ -17,6 +17,7 @@ protected:
     painlessMesh*  mesh;
     StaticJsonDocument<512> settings;
     vector<Scene> scenes;
+    vector<pair<uint32_t, bool>> ignoreList;//default state false
     vector<SmartValue> values;
     vector<SmartActivator> pub;
 
@@ -27,6 +28,8 @@ protected:
         
         DynamicJsonDocument data(256);
         deserializeJson(data, msg);
+
+        //System msg
         if(data["command"].as<String>() == "nodeWorking"){
 
         }else
@@ -34,7 +37,18 @@ protected:
         if(data["command"].as<String>() == "systemMode"){
             this->systemMode = data["mode"].as<String>();
         }else
+        
+        if(data["command"].as<String>() == "ignoreNodeState"){
+            this->setIgnoreState(data["ignoredNode"].as<uint32_t>(), data["state"].as<uint8_t>());
+        }else
 
+        //Delete msg zone
+
+        if(this->getIgnoreState(data["from"].as<uint32_t>())){
+            return;
+        }else
+
+        //Node msg
         if(data["command"].as<String>() == "sendEventToExecutor"){
             if(data["target"].as<uint32_t>() != this->mesh->getNodeId()){
                 this->sendEventToExecutor(data["target"].as<uint32_t>(), data["executor"].as<String>(), data["event"].as<String>());
@@ -49,7 +63,6 @@ protected:
                 }
             }
         }else
-
         
         if(data["command"].as<String>() == "sendEventToRoot"){
             String activator = data["activator"].as<String>();
@@ -135,9 +148,29 @@ public:
         }
     }
 
+    bool getIgnoreState(const uint32_t& node){
+        for(uint32_t i = 0; i < ignoreList.size(); ++i){
+            if(node == ignoreList[i].first){
+                return ignoreList[i].second;
+            }
+        }
+        return false;
+    }
+
+    void setIgnoreState(const uint32_t& node, bool state){
+        for(uint32_t i = 0; i < ignoreList.size(); ++i){
+            if(node == ignoreList[i].first){
+                ignoreList[i].second = state;
+                return;
+            }
+        }
+        ignoreList.emplace_back(node, state);
+    }
+
     void sendEventToExecutor(const uint32_t& target, const String& executor, const String& event){
         DynamicJsonDocument data(128);
 
+        data["from"] = mesh->getNodeId();
         data["command"] = "sendEventToExecutor";
         data["target"] = target;
         data["executor"] = executor;
@@ -170,6 +203,7 @@ public:
     void sendEventToRoot(const String& activator){
         DynamicJsonDocument data(128);
 
+        data["from"] = mesh->getNodeId();
         data["command"] = "sendEventToRoot";
         data["activator"] = activator;
 

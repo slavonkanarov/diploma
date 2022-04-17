@@ -22,6 +22,24 @@ public:
         mesh->sendBroadcast(out, true);
     }
 
+    void ignoreConnectionState(const uint32_t& node1, const uint32_t& node2, bool state){
+        ignoreNodeState(node1, node2, state);
+        ignoreNodeState(node2, node1, state);
+    }
+
+    void ignoreNodeState(const uint32_t& node, const uint32_t& ignoredNode, bool state){
+        DynamicJsonDocument data(64);
+
+        data["command"] = "ignoreNodeState";
+        data["ignoredNode"] = ignoredNode;
+        data["state"] = uint8_t(state);
+
+        String out;
+        serializeJson(data, out);
+
+        mesh->sendSingle(node, out);
+    }
+
 
 };
 
