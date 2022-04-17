@@ -11,16 +11,53 @@
 //************************************************************
 
 #include "IPAddress.h"
-#include "painlessMesh.h"
 #include "Timer.h"
 #include "Consts.h"
 #include "Settings.h"
 
-#define   MESH_PREFIX     "whateverYouLike"
-#define   MESH_PASSWORD   "somethingSneaky"
-#define   MESH_PORT       5555
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+#include <ESP8266SSDP.h>
+#include <FS.h>
+#include <ArduinoJson.h>
+#include <ESP8266HTTPUpdateServer.h>
 
 #include "SmartObjectBasic.hpp"
+
+#define   STATION_SSID     "grrrnet"
+#define   STATION_PASSWORD "pt10mzx6"
+
+String getContentType(String);
+bool handleFileRead();
+IPAddress getlocalIP();
+
+ESP8266HTTPUpdateServer httpUpdater;
+ESP8266WebServer HTTP;
+SmartObjectBasic SO(&HTTP);
+
+void WIFIinit() {
+  // Попытка подключения к точке доступа
+  WiFi.softAPdisconnect(true);
+  WiFi.disconnect();
+  delay(500);
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(STATION_SSID, STATION_PASSWORD);
+  // Делаем проверку подключения до тех пор пока счетчик tries
+  // не станет равен нулю или не получим подключение
+  unsigned long startTime = millis();
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+  Serial.println("ID Node: ");
+  Serial.println(uint32_t(WiFi.localIP()));
+}
+
 
 // Pig lamp
 int r__ = 0xff;
@@ -28,12 +65,6 @@ int g__ = 0x4d;
 int b__ = 0x00;
 int fade = 3;
 Settings leds;
-
-
-Scheduler userScheduler; // to control your personal task
-painlessMesh  mesh;
-
-SmartObjectBasic SO(&mesh);
 
 
 auto value = SO.makeSmartValue("lightPig", //имя переменной
@@ -85,16 +116,18 @@ void setup() {
     SO.loadSettings();
   }
 
-  mesh.setDebugMsgTypes( ERROR | STARTUP | CONNECTION | DEBUG);
-  mesh.init( MESH_PREFIX, MESH_PASSWORD, &userScheduler, MESH_PORT);
-  mesh.setContainsRoot(true);
-
+ 
+  httpUpdater.setup(&HTTP);
+  WIFIinit();
   SO.initMesh();
 
 }
 auto t = millis();
 void loop() {
-  mesh.update();
+  if(WiFi.status() != WL_CONNECTED && WiFi.getMode()==WIFI_STA){
+    WIFIinit();
+  }
+  HTTP.handleClient();
   if (millis() - t > 3000){
     Serial.print(WiFi.RSSI());
     Serial.printf(WiFi.SSID().c_str());

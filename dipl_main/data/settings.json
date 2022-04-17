@@ -1,5 +1,6 @@
 {
     "mesh":{
+        "root": 1,
         "childs": [
             {
                 "nodeId": 882456225,

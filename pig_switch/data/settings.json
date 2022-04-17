@@ -1,5 +1,6 @@
 {
     "mesh":{
+        "root": 0,
         "parent": 3665705184,
         "childs": [
             {

@@ -8,7 +8,7 @@ protected:
 
 public:
 
-    SmartObjectMain(painlessMesh*  mesh_object):SmartObjectBasic(mesh_object){};
+    SmartObjectMain(ESP8266WebServer*  mesh_object):SmartObjectBasic(mesh_object){};
 
     void systemMode(const String& mode){
         DynamicJsonDocument data(64);
@@ -19,7 +19,16 @@ public:
         String out;
         serializeJson(data, out);
 
-        mesh->sendBroadcast(out, true);
+        for(uint32_t i = 0; i < settings["mesh"]["childs"].size(); ++i){
+            uint32_t node = settings["mesh"]["childs"][i]["nodeId"].as<uint32_t>();
+            sendSingle(node, out);
+            Serial.printf("Resend to: %u", node);
+            for(uint32_t j = 0; j < settings["mesh"]["childs"][i]["subs"].size(); ++j){
+                node = settings["mesh"]["childs"][i]["subs"].as<uint32_t>();
+                sendSingle(node, out);
+                Serial.printf("Resend to: %u", node);
+            }
+        }
     }
 
     const String& getSystemMode(){
@@ -41,7 +50,7 @@ public:
         String out;
         serializeJson(data, out);
 
-        mesh->sendSingle(node, out);
+        sendSingle(node, out);
     }
 
 

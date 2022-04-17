@@ -1,10 +1,16 @@
 #ifndef _SmartObjectBasic_
 #define _SmartObjectBasic_
-
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+#include <ESP8266SSDP.h>
+#include <FS.h>
+#include <ArduinoJson.h>
+#include <ESP8266HTTPUpdateServer.h>
 #include "painlessMesh.h"
-#include<vector>
+#include <vector>
 #include <functional>
 #include <string>
+#include <ESP8266HTTPClient.h>
 
 #include "SmartValue.hpp"
 #include "SmartActivator.hpp"
@@ -14,7 +20,7 @@ using namespace std;
 
 class SmartObjectBasic{
 protected:
-    painlessMesh*  mesh;
+    ESP8266WebServer*  mesh;
     StaticJsonDocument<512> settings;
     vector<Scene> scenes;
     vector<pair<uint32_t, bool>> ignoreList;//default state false
@@ -23,8 +29,8 @@ protected:
 
     String systemModeState = "local";
 
-    function<void(const uint32_t &, const String &)> receivedCallback = [this](const uint32_t &from, const String &msg ){
-        Serial.printf("bridge: Received from %u msg=%s\n", from, msg.c_str());
+    function<void(const String &)> receivedCallback = [this]( const String &msg ){
+        Serial.printf("bridge: Received msg=%s\n", msg.c_str());
         
         DynamicJsonDocument data(256);
         deserializeJson(data, msg);
@@ -50,7 +56,7 @@ protected:
 
         //Node msg
         if(data["command"].as<String>() == "sendEventToExecutor"){
-            if(data["target"].as<uint32_t>() != this->mesh->getNodeId()){
+            if(data["target"].as<uint32_t>() != uint32_t(WiFi.localIP())){
                 this->sendEventToExecutor(data["target"].as<uint32_t>(), data["executor"].as<String>(), data["event"].as<String>());
             }else{
                 Serial.printf("trying to find executor");
@@ -66,7 +72,7 @@ protected:
         
         if(data["command"].as<String>() == "sendEventToRoot"){
             String activator = data["activator"].as<String>();
-            if(this->mesh->isRoot()){
+            if(settings["mesh"]["root"].as<uint32_t>() == 1){
                 for(uint32_t i = 0; i < this->scenes.size(); ++i){
                     if(this->scenes[i].activator == activator){
                         Serial.printf("find scene: activator=%s; event=%s; executor=%s; target=%u;\n",
@@ -102,12 +108,25 @@ protected:
 
 public:
 
-    SmartObjectBasic(painlessMesh*  mesh_object){
+    void sendSingle(const uint32_t& to, const String& msg){
+        WiFiClient client;
+        HTTPClient http;
+
+        String serverPath = IPAddress(to).toString() + "/server";
+        
+        // Your Domain name with URL path or IP address with path
+        http.begin(client, serverPath.c_str());
+        
+        // Send HTTP GET request
+        int httpResponseCode = http.POST(msg);
+    }
+
+    SmartObjectBasic(ESP8266WebServer*  mesh_object){
         mesh = mesh_object;
     };
 
     void initMesh(){
-        mesh->onReceive(receivedCallback);
+          mesh->on("/server", HTTP_POST, [this](){this->receivedCallback(mesh->arg("plain"));});
     };
 
     void loadSettings(){
@@ -170,7 +189,7 @@ public:
     void sendEventToExecutor(const uint32_t& target, const String& executor, const String& event){
         DynamicJsonDocument data(128);
 
-        data["from"] = mesh->getNodeId();
+        data["from"] = uint32_t(WiFi.localIP());
         data["command"] = "sendEventToExecutor";
         data["target"] = target;
         data["executor"] = executor;
@@ -178,39 +197,40 @@ public:
 
         String out;
         serializeJson(data, out);
-        if(target == mesh->getNodeId()){
-            receivedCallback(target, out);
+        if(target == uint32_t(WiFi.localIP())){
+            receivedCallback(out);
             return;
         }
 
         for(uint32_t i = 0; i < settings["mesh"]["childs"].size(); ++i){
             uint32_t node = settings["mesh"]["childs"][i]["nodeId"].as<uint32_t>();
             if(node == target){
-                mesh->sendSingle(node, out);
+                sendSingle(node, out);
                 return;
             }
             for(uint32_t j = 0; j < settings["mesh"]["childs"][i]["subs"].size(); ++j){
                 node = settings["mesh"]["childs"][i]["subs"].as<uint32_t>();
                 if(node == target){
-                    mesh->sendSingle(node, out);
+                    sendSingle(node, out);
+                    Serial.printf("Resend to: %u", target);
                     return;
                 }
             }
         }
-        mesh->sendSingle(settings["mesh"]["parent"].as<uint32_t>(), out);
+        sendSingle(settings["mesh"]["parent"].as<uint32_t>(), out);
     }
 
     void sendEventToRoot(const String& activator){
         DynamicJsonDocument data(128);
 
-        data["from"] = mesh->getNodeId();
+        data["from"] = uint32_t(WiFi.localIP());
         data["command"] = "sendEventToRoot";
         data["activator"] = activator;
 
         String out;
         serializeJson(data, out);
 
-        mesh->sendSingle(settings["mesh"]["parent"].as<uint32_t>(), out);
+        sendSingle(settings["mesh"]["parent"].as<uint32_t>(), out);
     }
 
     SmartValue* makeSmartValue(const String& name_of_value, 
