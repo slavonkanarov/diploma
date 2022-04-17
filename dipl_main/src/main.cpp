@@ -55,8 +55,8 @@ IPAddress myAPIP(0,0,0,0);
 SmartObjectMain SO(&mesh);
 
 bool ignoreMode = true;
-uint32_t nodeToIgnore1 = 0;
-uint32_t nodeToIgnore2 = 0;
+uint32_t nodeToIgnore1 = 3662020501;
+uint32_t nodeToIgnore2 = 3662027117;
 
 void setup() {
   Serial.begin(115200);
