@@ -2,6 +2,7 @@
 #define _Settings_
 
 #include <Arduino.h>
+#include <Adafruit_NeoPixel.h>
 #include "Effects.h"
 
 class Settings {
@@ -11,12 +12,10 @@ protected:
     uint8_t red;
     uint8_t green;
     uint8_t blue;
-    char* print_str;
     Effects effect;
 
 public:
     Settings(){
-        print_str = PRINTING_DATA;
         mode = 0;
         brightness = BRIGHTNESS;
         red = RED;
@@ -60,36 +59,36 @@ public:
         }
         setMode(mode_);
     }
-    void show(){
+    void show(Adafruit_NeoPixel strip){
         switch (mode)
         {
-        case 48:
-            effect.staticColor(red, green, blue, brightness);
-            break;
-        case 49:
-            effect.changeColor(brightness);
-            break;
-        case 50:
-            effect.rainbowColor(brightness);
-            break;
-        case 51:
-            effect.twinkleColor(red, green, blue, brightness);
-            break;
+        // case 48:
+        //     effect.staticColor(red, green, blue, brightness);
+        //     break;
+        // case 49:
+        //     effect.changeColor(brightness);
+        //     break;
+        // case 50:
+        //     effect.rainbowColor(brightness);
+        //     break;
+        // case 51:
+        //     effect.twinkleColor(red, green, blue, brightness);
+        //     break;
         case 52:
-            effect.pullUpCollor(red, green, blue, brightness, SIZE, 1);
+            effect.pullUpCollor(red, green, blue, brightness, SIZE, 1, strip);
             break;
         case 53:
-            effect.pullUpCollor(red, green, blue, brightness, 1, 5);
+            effect.pullUpCollor(red, green, blue, brightness, 1, 0.5, strip);
             break;  
-        case 54:
-            effect.randomFillByOne(red, green, blue, brightness, 5, 0);
-            break;
-        case 55:
-            effect.randomFillByOne(red, green, blue, brightness, 5, 1);
-            break;
-        case 56:
-            effect.HotLineMiami(brightness);
-            break;
+        // case 54:
+        //     effect.randomFillByOne(red, green, blue, brightness, 5, 0);
+        //     break;
+        // case 55:
+        //     effect.randomFillByOne(red, green, blue, brightness, 5, 1);
+        //     break;
+        // case 56:
+        //     effect.HotLineMiami(brightness);
+        //     break;
         default:
             break;
         }

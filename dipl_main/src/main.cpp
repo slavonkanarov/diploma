@@ -17,6 +17,7 @@
 #include "LampConsts.h"
 #include "WiFiConsts.h"
 #include "hexConverter.h"
+#include <Adafruit_NeoPixel.h>
 
 #ifdef ESP8266
 #include "Hash.h"
@@ -38,6 +39,11 @@
 #define HOSTNAME "HTTP_BRIDGE"
 
 #include "SmartObjectMain.hpp"
+
+// Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, MATRIX_PIN, NEO_RGB + NEO_KHZ800);
+// uint8_t r__ = 128;
+// uint8_t g__ = 128;
+// uint8_t b__ = 128;
 
 // Prototype
 void newConnectionCallback(uint32_t nodeId);
@@ -61,9 +67,7 @@ uint32_t nodeToIgnore2 = 3662027117;
 void setup() {
   Serial.begin(115200);
   pinMode(D0, OUTPUT);
-
-  // matrix.setAll(mode, brightness, red, green, blue);
-  // matrix.show();
+  // strip.begin();
 
     // Initialize SPIFFS
   if (!SPIFFS.begin()){ Serial.println("Failed to mount SPIFFS");}
@@ -93,6 +97,11 @@ void setup() {
   server.on("/api/set/systemMode", HTTP_GET, [](AsyncWebServerRequest *request){
     SO.systemMode(request->arg("systemMode"));;
     request->send(200, "text/plain", "OK");
+    if(SO.getSystemMode() == "local") {
+      // r__ = 255; g__ = 0; b__ = 0;
+    } else {
+      // r__ = 0; g__ = 0; b__ = 255;
+    }
   });
 
   server.on("/api/set/ignoreMode", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -128,12 +137,17 @@ void setup() {
 
 }
 
+
 void loop() {
   mesh.update();
   if(myIP != getlocalIP()){
     myIP = getlocalIP();
     Serial.println("My IP is " + myIP.toString());
   }
+  // for (int i = 0; i < NUM_LEDS; i++) { 
+  //   strip.setPixelColor(i, strip.Color(r__, g__, b__)); 
+  // }
+  // strip.show();
 }
 
 void newConnectionCallback(uint32_t nodeId) {
